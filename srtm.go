@@ -188,6 +188,13 @@ func (self *SrtmFile) getElevation(client *http.Client, storage SrtmLocalStorage
 	return elevation, nil
 }
 
+func (self SrtmFile) getModel() SrtmModel {
+	if self.squareSize == 1201 {
+		return WORLD
+	}
+	return US
+}
+
 func (self SrtmFile) getElevationFromRowAndColumn(row, column int) float64 {
 	i := row*self.squareSize + column
 	byte1 := self.contents[i*2]
