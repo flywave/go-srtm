@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	SRTM_BASE_URL = "http://dds.cr.usgs.gov/srtm"
-	SRTM1_URL     = "/version2_1/SRTM1/"
-	SRTM3_URL     = "/version2_1/SRTM3/"
+	//SRTM_BASE_URL = "http://dds.cr.usgs.gov/srtm"
+	SRTM_BASE_URL = "http://srtm.kurviger.de"
+	SRTM1_URL     = "/SRTM1/"
+	SRTM3_URL     = "/SRTM3/"
 )
 
 type Srtm struct {
@@ -244,6 +245,9 @@ func getLinksFromUrl(client *http.Client, baseUrl, url string, depth int) ([]Srt
 			parts := strings.Split(tmpUrl, "/")
 			name := parts[len(parts)-1]
 			name = strings.Replace(name, ".hgt.zip", "", -1)
+			if strings.HasSuffix(url, "/index.html") {
+				url = strings.Replace(url, "/index.html", "", 1)
+			}
 			u := strings.Replace(fmt.Sprintf("%s/%s", url, tmpUrl), baseUrl, "", 1)
 			srtmUrl := SrtmUrl{Name: name, Url: u}
 			result = append(result, srtmUrl)

@@ -7,8 +7,8 @@ import (
 )
 
 type SrtmUrl struct {
-	Name string `json:"n"`
-	Url  string `json:"u"`
+	Name string `json:"Name"`
+	Url  string `json:"Url"`
 
 	baseUrl string `json:"-"`
 }
@@ -17,7 +17,7 @@ type SrtmData struct {
 	Srtm1BaseUrl string    `json:"srtm1_base_url"`
 	Srtm1        []SrtmUrl `json:"srtm1"`
 	Srtm3BaseUrl string    `json:"srtm3_base_url"`
-	Srtm3        []SrtmUrl `json:"srtm2"`
+	Srtm3        []SrtmUrl `json:"srtm3"`
 }
 
 func newSrtmData(client *http.Client, storage SrtmStorage) (*SrtmData, error) {
