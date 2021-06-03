@@ -151,6 +151,12 @@ func (self *SrtmFile) loadContents(client *http.Client, storage SrtmStorage) err
 	}
 	self.contents = contents
 
+	squareSizeFloat := math.Sqrt(float64(len(self.contents)) / 2.0)
+	self.squareSize = int(squareSizeFloat)
+
+	if squareSizeFloat != float64(self.squareSize) || self.squareSize <= 0 {
+		return errors.New(fmt.Sprintf("Invalid size for file %s: %d", self.name, len(self.contents)))
+	}
 	return nil
 }
 

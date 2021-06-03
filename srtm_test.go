@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,4 +86,20 @@ func TestSrtm1AndSrtm3ForEurope(t *testing.T) {
 	if !(srtm3url != nil && len(srtm3url.Url) > 0 && srtm1url == nil) {
 		t.Error("Europe should have both srtm1 and srtm3 urls")
 	}
+}
+
+func TestHGTToGeoTiff(t *testing.T) {
+	srtm, _ := NewSrtm(http.DefaultClient)
+
+	srtmFileName, srtmLatitude, srtmLongitude := srtm.getSrtmFileNameAndCoordinates(35, 115)
+
+	srtmFile := newSrtmFile(srtmFileName, "N35E115.hgt.zip", srtmLatitude, srtmLongitude)
+	storage, _ := NewLocalFileSrtmStorage("./testdata/")
+
+	srtmFile.loadContents(http.DefaultClient, storage)
+	name := "./testdata/" + srtmFileName + ".tiff"
+
+	WriteSrtmToRaster(srtmFile, name)
+
+	os.Remove(name)
 }
