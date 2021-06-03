@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -22,14 +21,14 @@ type Srtm struct {
 	cache map[string]*SrtmFile
 
 	srtmData SrtmData
-	storage  SrtmLocalStorage
+	storage  SrtmStorage
 }
 
 func NewSrtm(client *http.Client) (*Srtm, error) {
 	return NewSrtmWithCustomCacheDir(client, "")
 }
 
-func NewSrtmWithCustomStorage(client *http.Client, storage SrtmLocalStorage) (*Srtm, error) {
+func NewSrtmWithCustomStorage(client *http.Client, storage SrtmStorage) (*Srtm, error) {
 	srtmData, err := newSrtmData(client, storage)
 	if err != nil {
 		return nil, err
@@ -110,7 +109,7 @@ func newSrtmFile(name, fileUrl string, latitude, longitude float64) *SrtmFile {
 	return &result
 }
 
-func (self *SrtmFile) loadContents(client *http.Client, storage SrtmLocalStorage) error {
+func (self *SrtmFile) loadContents(client *http.Client, storage SrtmStorage) error {
 	if !self.isValidSrtmFile || len(self.fileUrl) == 0 {
 		return nil
 	}
@@ -120,14 +119,12 @@ func (self *SrtmFile) loadContents(client *http.Client, storage SrtmLocalStorage
 	bytes, err := storage.LoadFile(fileName)
 	if err != nil {
 		if storage.IsNotExists(err) {
-			log.Printf("File %s not retrieved => retrieving: %s", fileName, self.fileUrl)
 			req, err := http.NewRequest(http.MethodGet, self.fileUrl, nil)
 			if err != nil {
 				return err
 			}
 			response, err := client.Do(req)
 			if err != nil {
-				log.Printf("Error retrieving file: %s", err.Error())
 				return err
 			}
 
@@ -140,7 +137,6 @@ func (self *SrtmFile) loadContents(client *http.Client, storage SrtmLocalStorage
 			if err := storage.SaveFile(fileName, responseBytes); err != nil {
 				return err
 			}
-			log.Printf("Written %d bytes to %s", len(responseBytes), fileName)
 
 			bytes = responseBytes
 		} else {
@@ -150,23 +146,19 @@ func (self *SrtmFile) loadContents(client *http.Client, storage SrtmLocalStorage
 
 	contents, err := unzipBytes(bytes)
 	if err != nil {
-		log.Printf("Error loading file %s: %s", fileName, err.Error())
+		return err
 	}
 	self.contents = contents
-
-	log.Printf("Loaded %dbytes from %s, squareSize=%d", len(self.contents), fileName, self.squareSize)
 
 	return nil
 }
 
-func (self *SrtmFile) getElevation(client *http.Client, storage SrtmLocalStorage, latitude, longitude float64) (float64, error) {
+func (self *SrtmFile) getElevation(client *http.Client, storage SrtmStorage, latitude, longitude float64) (float64, error) {
 	if !self.isValidSrtmFile || len(self.fileUrl) == 0 {
-		log.Printf("Invalid file %s", self.name)
 		return math.NaN(), nil
 	}
 
 	if len(self.contents) == 0 {
-		log.Println("load contents")
 		err := self.loadContents(client, storage)
 		if err != nil {
 			return math.NaN(), err
@@ -255,14 +247,12 @@ func getLinksFromUrl(client *http.Client, baseUrl, url string, depth int) ([]Srt
 			u := strings.Replace(fmt.Sprintf("%s/%s", url, tmpUrl), baseUrl, "", 1)
 			srtmUrl := SrtmUrl{Name: name, Url: u}
 			result = append(result, srtmUrl)
-			log.Printf("> %s/%s -> %s\n", url, tmpUrl, tmpUrl)
 		} else if len(urlLowercase) > 0 && urlLowercase[0] != '/' && !strings.HasPrefix(urlLowercase, "http") && !strings.HasSuffix(urlLowercase, ".jpg") {
 			newLinks, err := getLinksFromUrl(client, baseUrl, fmt.Sprintf("%s/%s", url, tmpUrl), depth+1)
 			if err != nil {
 				return nil, err
 			}
 			result = append(result, newLinks...)
-			log.Printf("> %s\n", tmpUrl)
 		}
 	}
 

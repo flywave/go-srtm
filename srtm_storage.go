@@ -2,12 +2,11 @@ package srtm
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 )
 
-type SrtmLocalStorage interface {
+type SrtmStorage interface {
 	LoadFile(fn string) ([]byte, error)
 	IsNotExists(err error) bool
 	SaveFile(fn string, bytes []byte) error
@@ -19,13 +18,10 @@ type LocalFileSrtmStorage struct {
 
 func NewLocalFileSrtmStorage(cacheDirectory string) (*LocalFileSrtmStorage, error) {
 	if len(cacheDirectory) == 0 {
-		cacheDirectory = path.Join(os.Getenv("HOME"), ".geoelevations")
+		cacheDirectory = path.Join(os.Getenv("HOME"), ".srtm")
 	}
-	log.Printf("Using %s to cache SRTM files", cacheDirectory)
 
 	if _, err := os.Stat(cacheDirectory); os.IsNotExist(err) {
-		log.Print("Creating", cacheDirectory)
-
 		if err := os.Mkdir(cacheDirectory, os.ModeDir|0700); err != nil {
 			return nil, err
 		}
@@ -59,4 +55,4 @@ func (ds LocalFileSrtmStorage) SaveFile(fn string, bytes []byte) error {
 	return err
 }
 
-var _ SrtmLocalStorage = new(LocalFileSrtmStorage)
+var _ SrtmStorage = new(LocalFileSrtmStorage)

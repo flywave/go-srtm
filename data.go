@@ -20,7 +20,7 @@ type SrtmData struct {
 	Srtm3        []SrtmUrl `json:"srtm2"`
 }
 
-func newSrtmData(client *http.Client, storage SrtmLocalStorage) (*SrtmData, error) {
+func newSrtmData(client *http.Client, storage SrtmStorage) (*SrtmData, error) {
 	fn := "urls.json"
 
 	bytes, err := storage.LoadFile(fn)
