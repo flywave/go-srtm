@@ -1,15 +1,14 @@
 package srtm
 
 import (
-	"github.com/flywave/go-raster"
+	"github.com/flywave/go-geotiff"
 )
 
 type GeoBounds [4]float64
 
-func newRasterConfig() *raster.RasterConfig {
-	conf := raster.NewDefaultRasterConfig()
-	conf.RasterFormat = raster.RT_GeoTiff
-	conf.DataType = raster.DT_FLOAT32
+func newRasterConfig() *geotiff.RasterConfig {
+	conf := geotiff.NewDefaultRasterConfig()
+	conf.DataType = geotiff.DT_FLOAT32
 	conf.EPSGCode = 4326
 	return conf
 }
@@ -44,7 +43,7 @@ func cacleBounds(latitude, longitude float64) GeoBounds {
 func WriteSrtmToRaster(f *SrtmFile, fileName string) error {
 	bounds := cacleBounds(f.latitude, f.longitude)
 	conf := newRasterConfig()
-	raster, err := raster.CreateNewRaster(fileName, f.squareSize, f.squareSize, bounds[0], bounds[1], bounds[2], bounds[3], conf)
+	raster, err := geotiff.CreateNewRaster(fileName, f.squareSize, f.squareSize, bounds[0], bounds[1], bounds[2], bounds[3], conf)
 	if err != nil {
 		return err
 	}
